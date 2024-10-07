@@ -1,0 +1,38 @@
+[package]
+name = "secret_contract_example"
+version = "0.1.0"
+authors = ["SecretTemplateExample"]
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[profile.release]
+opt-level = 3
+debug = false
+rpath = false
+lto = true
+debug-assertions = false
+codegen-units = 1
+panic = 'abort'
+incremental = false
+overflow-checks = true
+
+[features]
+default = []
+# for quicker tests, cargo test --lib
+# for more explicit tests, cargo test --features=backtraces
+backtraces = ["cosmwasm-std/backtraces"]
+
+[dependencies]
+cosmwasm-std = { package = "secret-cosmwasm-std", version = "1.1.11"  }
+cosmwasm-storage = { package = "secret-cosmwasm-storage", version = "1.1.11"  }
+secret-toolkit = { git = "https://github.com/scrtlabs/secret-toolkit", tag = "v0.10.0", features = ["permit"] }
+schemars = { version = "0.8.11" }
+serde = { version = "1.0" }
+thiserror = { version = "1.0" }
+cosmwasm-schema = "1.0.0"
+
+[[bin]]
+name = "schema"
+required-features = ["schema"]
