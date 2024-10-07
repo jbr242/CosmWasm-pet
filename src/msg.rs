@@ -1,57 +1,58 @@
-use cosmwasm_std::{Addr, Uint128, Uint64};
+use cosmwasm_std::Addr;
 use schemars::JsonSchema;
-use secret_toolkit::permit::Permit;
 use serde::{Deserialize, Serialize};
 
+// InstantiateMsg is used to initialise the contract with the pet's name and owner.
 #[derive(Serialize, Deserialize, Clone, Debug, Eq, PartialEq, JsonSchema)]
 pub struct InstantiateMsg {
-    pub admin: Option<Addr>,
+    pub name: String,
+    pub owner: Option<Addr>, 
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Eq, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum ExecuteMsg {
-    // Admin-only
-    SetAuction {
-        secret: String,
-        minimum_bid: Uint128,
-        end_time: Uint64,
+    SetPassword {
+        password: String,
     },
-    StartAuction { },
-
-    // Any user
-    Bid { },
-    Withdraw { },
+    Feed {
+        amount: u8,
+    },
+    Play {
+        amount: u8,
+    },
+    Rest {
+        amount: u8,
+    },
+    Transfer {
+        new_owner: String,
+    },
 }
 
+//Read-only queries require a password that is set by calling set_password.
 #[derive(Serialize, Deserialize, Clone, Debug, Eq, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum QueryMsg {
-    AuctionInfo { },
-    WithPermit {
-        /// permit used to verify querier identity
-        permit: Permit,
-        /// query to perform
-        query: QueryWithPermit,
+    // Checks if the pet is hungry if hunger_level >= 7.
+    IsHungry {
+        password: String,
+    },
+    GetStatus {
+        password: String,
     },
 }
 
-/// queries using permits
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, JsonSchema)]
-#[serde(rename_all = "snake_case")]
-pub enum QueryWithPermit {
-    GetSecret { },
-}
-
+// Query answer for read-only queries.
 #[derive(Serialize, Deserialize, JsonSchema, Debug)]
 #[serde(rename_all = "snake_case")]
 pub enum QueryAnswer {
-    AuctionInfo {
-        started: bool,
-        minimum_bid: Option<Uint128>,
-        end_time: Option<Uint64>,
+    IsHungry {
+        is_hungry: bool,
     },
-    GetSecret {
-        secret: String,
+    GetStatus {
+        name: String,
+        hunger_level: u8,
+        happiness_level: u8,
+        energy_level: u8,
     },
 }
