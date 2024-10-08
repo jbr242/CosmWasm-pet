@@ -17,7 +17,8 @@
     "test": "mocha dist/test/**/*.js",
     "test:dev": "ts-mocha test/**/*.spec.ts -w --watch-files '**/*.ts'",
     "upload": "node dist/src/upload",
-    "instantiate": "node dist/src/instantiate"
+    "instantiate": "node dist/src/instantiate",
+    "execute":  "node dist/src/execute"
   },
   "devDependencies": {
     "@types/chai": "^4.3.4",
