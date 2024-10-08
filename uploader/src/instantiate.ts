@@ -29,12 +29,15 @@ const instantiateContract = async (codeId: string, contractCodeHash: string, pet
             sender: wallet.address,
             code_hash: contractCodeHash,
             init_msg: initMsg,
-            label: "Pet Contract " + Math.ceil(Math.random() * 10000000),
+            label: "Pet Contract" + Math.ceil(Math.random() * 10000000),
         },
         {
             gasLimit: 400_000,
         }
     );
+
+    console.log(`Transaction code: ${tx.code}`);
+    console.log(`Transaction raw log: ${tx.rawLog}`);
     
     //Find the contract_address in the logs
     //@ts-ignore
@@ -68,7 +71,7 @@ export const main = async (): Promise<void> => {
 
     // Prompt the user for the pet name and password
     const petName = await question("Enter your pet's name: ");
-    const userPassword = await question("Enter a password for your pet: ");
+    const password = await question("Enter a password for your pet: ");
 
     // Close the readline interface
     rl.close();
@@ -77,12 +80,9 @@ export const main = async (): Promise<void> => {
     
     console.log("Contract address: ", contract_address);
 
-    // Set the password for the pet contract
-    const password = "my_secure_password";  // Replace with your desired password
-
     const set_password_msg = {
         set_password: {
-            userPassword,
+            password: password,
         },
     };
 

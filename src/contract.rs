@@ -7,7 +7,6 @@ use cosmwasm_std::{
 use crate::msg::{ExecuteMsg, InstantiateMsg, QueryAnswer, QueryMsg};
 use crate::state::{Pet, PET, PASSWORD, OWNER};
 
-const BLOCK_CONVERSION: f64 = 1.0;
 
 #[entry_point]
 pub fn instantiate(
@@ -66,7 +65,6 @@ fn update_state(storage: &mut dyn Storage, env: Env) -> StdResult<Pet> {
     let mut pet = PET.load(storage)?;
 
     let mut blocks_passed = env.block.height - pet.last_action_block;
-    blocks_passed = (blocks_passed as f64 * BLOCK_CONVERSION) as u64;
     //convert blocks_passed to be max 10
     blocks_passed = blocks_passed.min(10);
 
