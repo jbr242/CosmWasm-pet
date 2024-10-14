@@ -1,5 +1,6 @@
 import { SecretNetworkClient, Wallet } from "secretjs";
 import * as dotenv from "dotenv";
+import * as readline from "readline";
 
 dotenv.config();  // Load environment variables from .env file 
 const mnemonic = process.env.MNEMONIC;  // Retrieve the mnemonic
@@ -14,26 +15,29 @@ const secretjs = new SecretNetworkClient({
   walletAddress: wallet.address,
 });
 
-const instantiateContract = async (codeId: string, contractCodeHash: string): Promise<string> => {
+const instantiateContract = async (codeId: string, contractCodeHash: string, petName): Promise<string> => {
     // The instantiate message is empty in this example. 
     // We could also send an `admin` address if we wanted to.
     
-    const initMsg = {};
-    // const initMsg = {
-    //     admin: wallet.address
-    // };
+    const initMsg = {
+        name: petName,  // Replace with your pet's name
+        // owner: wallet.address,  // Optional; defaults to the sender
+    };
     let tx = await secretjs.tx.compute.instantiateContract(
         {
             code_id: codeId,
             sender: wallet.address,
             code_hash: contractCodeHash,
             init_msg: initMsg,
-            label: "test contract" + Math.ceil(Math.random() * 10000000),
+            label: "Pet Contract" + Math.ceil(Math.random() * 10000000),
         },
         {
             gasLimit: 400_000,
         }
     );
+
+    console.log(`Transaction code: ${tx.code}`);
+    console.log(`Transaction raw log: ${tx.rawLog}`);
     
     //Find the contract_address in the logs
     //@ts-ignore
@@ -51,71 +55,50 @@ export const main = async (): Promise<void> => {
     let code_id = process.argv[2];
     let code_hash = process.argv[3];
 
-    const contract_address = await instantiateContract(code_id, code_hash);
+    const rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout,
+    });
+
+    // Promisify the question method to use async/await
+    const question = (questionText: string): Promise<string> => {
+        return new Promise((resolve) => {
+            rl.question(questionText, (answer) => {
+                resolve(answer);
+            });
+        });
+    };
+
+    // Prompt the user for the pet name and password
+    const petName = await question("Enter your pet's name: ");
+    const password = await question("Enter a password for your pet: ");
+
+    // Close the readline interface
+    rl.close();
+
+    const contract_address = await instantiateContract(code_id, code_hash, petName);
     
     console.log("Contract address: ", contract_address);
 
-    // query `auction_info`
-    let auction_info_result = await secretjs.query.compute.queryContract({
-        contract_address,
-        code_hash,
-        query: {
-            auction_info: { }
-        }
-    });
-    console.log(auction_info_result);
-
-    // Date.now gives a time in milliseconds, convert to seconds 
-    // and add 120 seconds 
-    let end_time = (Math.floor(Date.now() / 1000) + 120).toString(); 
-    // create the `set_auction` message
-    let set_auction_msg = {
-        set_auction: {
-            secret: "This is my secret!",
-            minimum_bid: "1000000", // 1,000,000 uscrt == 1 SCRT
-            end_time
-        }
+    const set_password_msg = {
+        set_password: {
+            password: password,
+        },
     };
-    console.log(set_auction_msg);
-    // execute `set_auction`
-    const set_auction_tx = await secretjs.tx.compute.executeContract(
+
+    const set_password_tx = await secretjs.tx.compute.executeContract(
         {
             sender: wallet.address,
             contract_address,
             code_hash,
-            msg: set_auction_msg,
-            sent_funds: [], // optional
+            msg: set_password_msg,
+            sent_funds: [], // Optional
         },
         {
             gasLimit: 100_000,
         },
     );
-    console.log(set_auction_tx);
-
-    // execute `start_auction`
-    const start_auction_tx = await secretjs.tx.compute.executeContract(
-        {
-            sender: wallet.address,
-            contract_address,
-            code_hash,
-            msg: { start_auction: { } },
-            sent_funds: [], // optional
-        },
-        {
-            gasLimit: 100_000,
-        },
-    );
-    console.log(start_auction_tx);
-
-    // query `auction_info` again. It now says started
-    auction_info_result = await secretjs.query.compute.queryContract({
-        contract_address,
-        code_hash,
-        query: {
-            auction_info: { }
-        }
-    });
-    console.log(auction_info_result);
+    console.log("Set password transaction:", set_password_tx);
 }
 
 main()
