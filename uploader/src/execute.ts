@@ -47,7 +47,8 @@ export const main = async (): Promise<void> => {
     console.log("3. Rest the pet");
     console.log("4. Get pet status");
     console.log("5. Check if the pet is hungry");
-    console.log("6. Exit");
+    console.log("6. Transfer ownership");
+    console.log("7. Exit");
 
     const choice = await question("Enter the number of your choice: ");
 
@@ -200,6 +201,34 @@ export const main = async (): Promise<void> => {
         break;
 
       case "6":
+        // Transfer ownership
+        const newOwner = await question("Enter the new owner's address: ");
+
+        const transfer_ownership_msg = {
+          transfer: {
+            new_owner: newOwner,
+          },
+        };
+
+        try {
+          const transfer_ownership_tx = await secretjs.tx.compute.executeContract(
+            {
+              sender: wallet.address,
+              contract_address,
+              code_hash,
+              msg: transfer_ownership_msg,
+              sent_funds: [],
+            },
+            {
+              gasLimit: 100_000,
+            },
+          );
+          console.log("Transfer ownership transaction successful:", transfer_ownership_tx.transactionHash, "\n");
+        } catch (error) {
+          console.error("Error transferring ownership:", error, "\n");
+        }
+        break;
+      case "7":
         // Exit the script
         console.log("Exiting the script. Goodbye!");
         exit = true;
@@ -210,8 +239,6 @@ export const main = async (): Promise<void> => {
         break;
     }
   }
-
-  // Close the readline interface
   rl.close();
 };
 
