@@ -7,6 +7,9 @@ use cosmwasm_std::{
 use crate::msg::{ExecuteMsg, InstantiateMsg, QueryAnswer, QueryMsg};
 use crate::state::{Pet, PET, PASSWORD, OWNER};
 
+const BLOCK_SCALING_FACTOR: u64 = 10;
+
+
 
 #[entry_point]
 pub fn instantiate(
@@ -63,12 +66,8 @@ pub fn try_set_password(deps: DepsMut, info: MessageInfo, password: String) -> S
 
 fn update_state(storage: &mut dyn Storage, env: Env) -> StdResult<Pet> {
     let mut pet = PET.load(storage)?;
-
-    let mut blocks_passed = env.block.height - pet.last_action_block;
-    //convert blocks_passed to be max 10
-    blocks_passed = blocks_passed.min(10);
-
-    
+    // calculate how many blocks have passed since the last action and scale it down
+    let blocks_passed = ((env.block.height - pet.last_action_block) / BLOCK_SCALING_FACTOR).min(10);    
     // if hunger level above 10, make it 10 with min func
     pet.hunger_level = (pet.hunger_level + blocks_passed as u8).min(10);
     
@@ -103,7 +102,7 @@ pub fn try_feed(deps: DepsMut, env: Env, info: MessageInfo, amount: u8) -> StdRe
     }
 
     let mut pet = update_state(deps.storage, env).unwrap();
-    pet.hunger_level = (pet.hunger_level + amount).min(10);
+    pet.hunger_level = (pet.hunger_level - amount).max(0);
     PET.save(deps.storage, &pet)?;
 
     Ok(Response::default())
@@ -168,7 +167,7 @@ pub fn try_transfer(deps: DepsMut, info: MessageInfo, new_owner: String) -> StdR
 pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::IsHungry { password } => try_is_hungry(deps, password, env),
-        QueryMsg::GetStatus { password } => try_get_status(deps, password),
+        QueryMsg::GetStatus { password } => try_get_status(deps, password, env),
     }
 }
 
@@ -184,22 +183,25 @@ pub fn try_is_hungry(deps: Deps, password: String, env: Env) -> StdResult<Binary
     check_password(deps, password)?;
     let pet = PET.load(deps.storage)?;
     let hunger = pet.hunger_level;
-    let last_action_block = pet.last_action_block;
-    let blocks_passed = env.block.height - last_action_block;
-    let hunger = (hunger + blocks_passed as u8).min(10);
+
+    let blocks_passed = (env.block.height - pet.last_action_block) / BLOCK_SCALING_FACTOR;
+
+    let hunger = ((hunger + blocks_passed as u8)).min(10);
     Ok(
         to_binary(&QueryAnswer::IsHungry { is_hungry: (hunger >= 7) })?
     )
 }
 
-pub fn try_get_status(deps: Deps, password: String) -> StdResult<Binary> {
+pub fn try_get_status(deps: Deps, password: String, env: Env) -> StdResult<Binary> {
     check_password(deps, password)?;
     let pet = PET.load(deps.storage)?;
+    let blocks_passed = (env.block.height - pet.last_action_block) / BLOCK_SCALING_FACTOR;
+
     Ok(
         to_binary(&QueryAnswer::GetStatus {
             name: pet.name,
-            hunger_level: pet.hunger_level,
-            happiness_level: pet.happiness_level,
+            hunger_level: (pet.hunger_level + blocks_passed as u8).min(10),
+            happiness_level: (pet.happiness_level - blocks_passed as u8).max(0),
             energy_level: pet.energy_level,
         })?
     )

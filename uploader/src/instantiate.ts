@@ -35,10 +35,6 @@ const instantiateContract = async (codeId: string, contractCodeHash: string, pet
             gasLimit: 400_000,
         }
     );
-
-    console.log(`Transaction code: ${tx.code}`);
-    console.log(`Transaction raw log: ${tx.rawLog}`);
-    
     //Find the contract_address in the logs
     //@ts-ignore
     const contractAddress = tx.arrayLog!.find((log) => log.type === "message" && log.key === "contract_address").value;
@@ -47,13 +43,6 @@ const instantiateContract = async (codeId: string, contractCodeHash: string, pet
 };
 
 export const main = async (): Promise<void> => {
-    if (process.argv.length !== 4) {
-        console.error('Expected two arguments!');
-        process.exit(1);
-    }
-
-    let code_id = process.argv[2];
-    let code_hash = process.argv[3];
 
     const rl = readline.createInterface({
         input: process.stdin,
@@ -68,8 +57,29 @@ export const main = async (): Promise<void> => {
             });
         });
     };
+    let code_id = ""
+    let code_hash = ""
 
-    // Prompt the user for the pet name and password
+    const fromEnv = await question("Do you want to use the code id and code hash from the .env file? (y/n): ");
+    if (fromEnv === "y") {
+        try {
+            if (!process.env.CODE_ID || !process.env.CODE_HASH) {
+                throw new Error("CODE_ID or CODE_HASH not found in .env file");
+            }
+        }
+        catch (err) {
+            console.error(err);
+            process.exit(1);
+        }
+        code_id = process.env.CODE_ID;
+        code_hash = process.env.CODE_HASH;
+        
+    } else {
+        // Prompt the user for the pet name and password
+        code_id = await question("Enter the code id: ");
+        code_hash = await question("Enter the code hash: ");
+    }
+
     const petName = await question("Enter your pet's name: ");
     const password = await question("Enter a password for your pet: ");
 
@@ -77,8 +87,6 @@ export const main = async (): Promise<void> => {
     rl.close();
 
     const contract_address = await instantiateContract(code_id, code_hash, petName);
-    
-    console.log("Contract address: ", contract_address);
 
     const set_password_msg = {
         set_password: {
@@ -98,7 +106,12 @@ export const main = async (): Promise<void> => {
             gasLimit: 100_000,
         },
     );
-    console.log("Set password transaction:", set_password_tx);
+    if (set_password_tx.code !== 0) {
+        throw new Error(`Failed to set password: ${set_password_tx.rawLog}`);
+    } else {
+        console.log("Set password successfully, cost:", set_password_tx.gasUsed);
+    }
+    console.log("This is your pets contract address: ", contract_address);
 }
 
 main()

@@ -31,9 +31,29 @@ export const main = async (): Promise<void> => {
     });
   };
 
-  // Prompt the user for the contract address and code hash
-  const contract_address = await question("Enter the contract address: ");
-  const code_hash = await question("Enter the contract code hash: ");
+  let code_hash = ""
+  let contract_address = ""
+
+  const fromEnv = await question("Do you want to use the code hash and pet address from the .env file? (y/n): ");
+    if (fromEnv === "y") {
+        try {
+            if (!process.env.PET_ADDRESS || !process.env.CODE_HASH) {
+                throw new Error("PET_ADDRESS or CODE_HASH not found in .env file");
+            }
+        }
+        catch (err) {
+            console.error(err);
+            process.exit(1);
+        }
+        contract_address = process.env.PET_ADDRESS;
+        code_hash = process.env.CODE_HASH;
+        
+    } else {
+        // Prompt the user for the pet name and password
+        code_hash = await question("Enter the code hash: ");
+        contract_address = await question("Enter the contract address: ");
+    }
+  
   const password = await question("Enter your pet's password: ");
 
   console.log("\nWelcome to your Pet\n");
