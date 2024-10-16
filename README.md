@@ -129,7 +129,9 @@ Before uploading the contract, you need to compile it. From the root directory (
 ```bash
 cd ..
 ```
-
+```
+cargo build
+```
 ```bash
 make build-mainnet-reproducible
 ```
@@ -142,6 +144,10 @@ After building the contract, navigate to the `uploader/` directory:
 
 ```bash
 cd uploader
+```
+Build the scripts:
+```bash
+npm run build
 ```
 
 Upload the compiled Wasm file to the Secret Network:
