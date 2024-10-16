@@ -259,7 +259,7 @@ npm run execute
 To verify that the contract is functioning correctly, run the test script.
 
 ```bash
-npm run test
+npm run testpet
 ```
 
 **What the Test Script Does:**
