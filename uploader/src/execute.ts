@@ -216,7 +216,7 @@ export const main = async (): Promise<void> => {
           console.log("Happiness:", result.happiness_level);
           console.log("Energy:", result.energy_level, "\n");
         } catch (error) {
-          //console.error("Error getting pet status:", error, "\n");
+          console.error("Error getting pet status:", error, "\n");
         }
         break;
 

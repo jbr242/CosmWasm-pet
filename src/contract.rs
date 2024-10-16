@@ -30,9 +30,9 @@ pub fn instantiate(
 
     let pet = Pet {
         name: msg.name,
-        hunger_level: 0,
-        happiness_level: 10,
-        energy_level: 10,
+        hunger_level: 5,
+        happiness_level: 5,
+        energy_level: 5,
         last_action_block: env.block.height,
     };
 
