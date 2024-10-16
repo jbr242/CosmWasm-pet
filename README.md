@@ -85,7 +85,7 @@ The repository is organized as follows:
    PET_ADDRESS="your pet's contract address (will be set after instantiation)"
    ```
 
-   - **MNEMONIC**: Your wallet's 24-word mnemonic seed phrase.
+   - **MNEMONIC**: Your wallet's 12 or 24-word mnemonic seed phrase.
    - **CODE_ID**: The code ID of the pet contract (set after uploading the contract).
    - **CODE_HASH**: The code hash of the pet contract (set after uploading the contract).
    - **PET_ADDRESS**: The contract address of your pet (set after instantiation).
