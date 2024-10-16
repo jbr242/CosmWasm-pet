@@ -7,10 +7,12 @@ use cosmwasm_std::{
 use crate::msg::{ExecuteMsg, InstantiateMsg, QueryAnswer, QueryMsg};
 use crate::state::{Pet, PET, PASSWORD, OWNER};
 
+// Scaling factor for the number of blocks passed since the last action
 const BLOCK_SCALING_FACTOR: u64 = 10;
 
 
-
+//  Instantiate the contract
+//  The owner of the pet is set to the sender of the message if no owner is provided
 #[entry_point]
 pub fn instantiate(
     deps: DepsMut,
@@ -38,6 +40,7 @@ pub fn instantiate(
     Ok(Response::default())
 }
 
+// Execute the contract, calling the appropriate function based on the message
 #[entry_point]
 pub fn execute(
     deps: DepsMut,
@@ -54,6 +57,7 @@ pub fn execute(
     }
 }
 
+// Set the password for the contract
 pub fn try_set_password(deps: DepsMut, info: MessageInfo, password: String) -> StdResult<Response> {
     let owner = deps.api.addr_humanize(&OWNER.load(deps.storage)?)?;
     if info.sender != owner {
@@ -64,6 +68,9 @@ pub fn try_set_password(deps: DepsMut, info: MessageInfo, password: String) -> S
     Ok(Response::default())
 }
 
+// Helper function to update the state of the pet
+// Updates the hunger level, happiness level, and energy level of the pet
+// based on the number of blocks passed since the last action
 fn update_state(storage: &mut dyn Storage, env: Env) -> StdResult<Pet> {
     let mut pet = PET.load(storage)?;
     // calculate how many blocks have passed since the last action and scale it down
@@ -89,8 +96,7 @@ fn update_state(storage: &mut dyn Storage, env: Env) -> StdResult<Pet> {
     Ok(pet)
 }
 
-
-
+// Feed the pet, decreases the hunger level of the pet
 pub fn try_feed(deps: DepsMut, env: Env, info: MessageInfo, amount: u8) -> StdResult<Response> {
     let owner = deps.api.addr_humanize(&OWNER.load(deps.storage)?)?;
     if info.sender != owner {
@@ -108,6 +114,8 @@ pub fn try_feed(deps: DepsMut, env: Env, info: MessageInfo, amount: u8) -> StdRe
     Ok(Response::default())
 }
 
+// Play with the pet, increases the happiness level of the pet
+// Decreases the energy level of the pet
 pub fn try_play(deps: DepsMut, env: Env, info: MessageInfo, amount: u8) -> StdResult<Response> {
     let owner = deps.api.addr_humanize(&OWNER.load(deps.storage)?)?;
     if info.sender != owner {
@@ -131,6 +139,7 @@ pub fn try_play(deps: DepsMut, env: Env, info: MessageInfo, amount: u8) -> StdRe
     Ok(Response::default())
 }
 
+// Rest increases the energy level of the pet
 pub fn try_rest(deps: DepsMut, env: Env, info: MessageInfo, amount: u8) -> StdResult<Response> {
     let owner = deps.api.addr_humanize(&OWNER.load(deps.storage)?)?;
     if info.sender != owner {
@@ -149,6 +158,8 @@ pub fn try_rest(deps: DepsMut, env: Env, info: MessageInfo, amount: u8) -> StdRe
     Ok(Response::default())
 }
 
+// Transfer the ownership of the pet
+// Only the current owner can transfer the pet
 pub fn try_transfer(deps: DepsMut, info: MessageInfo, new_owner: String) -> StdResult<Response> {
     let owner = deps.api.addr_humanize(&OWNER.load(deps.storage)?)?;
     if info.sender != owner {
@@ -163,6 +174,7 @@ pub fn try_transfer(deps: DepsMut, info: MessageInfo, new_owner: String) -> StdR
 }
 
 
+// Query the contract
 #[entry_point]
 pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
@@ -171,6 +183,7 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     }
 }
 
+// Helper function to check if the password is correct
 fn check_password(deps: Deps, password: String) -> StdResult<()> {
     let stored_password = PASSWORD.load(deps.storage)?;
     if stored_password != password {
@@ -179,6 +192,8 @@ fn check_password(deps: Deps, password: String) -> StdResult<()> {
     Ok(())
 }
 
+// Tries to check if the pet is hungry
+// If the hunger level is greater than or equal to 7, the pet is considered hungry
 pub fn try_is_hungry(deps: Deps, password: String, env: Env) -> StdResult<Binary> {
     check_password(deps, password)?;
     let pet = PET.load(deps.storage)?;
@@ -192,6 +207,8 @@ pub fn try_is_hungry(deps: Deps, password: String, env: Env) -> StdResult<Binary
     )
 }
 
+// Tries to get the status of the pet
+// Returns the name, hunger level, happiness level, and energy level of the pet
 pub fn try_get_status(deps: Deps, password: String, env: Env) -> StdResult<Binary> {
     check_password(deps, password)?;
     let pet = PET.load(deps.storage)?;
