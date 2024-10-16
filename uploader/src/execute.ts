@@ -1,11 +1,28 @@
 import { SecretNetworkClient, Wallet } from "secretjs";
 import * as dotenv from "dotenv";
 import * as readline from "readline";
+import { get } from "lodash";
 
 dotenv.config();  // Load environment variables from .env file
 const mnemonic = process.env.MNEMONIC!;  // Retrieve the mnemonic
 
 const wallet = new Wallet(mnemonic);
+
+interface GetStatus {
+  get_status: {
+    name: String;
+    hunger_level: number;
+    happiness_level: number;
+    energy_level: number;
+  }
+  
+}
+
+interface isHungryResult {
+  is_hungry: {
+    is_hungry: boolean;
+  }
+}
 
 // Create a new client for the Pulsar testnet
 const secretjs = new SecretNetworkClient({
@@ -102,7 +119,7 @@ export const main = async (): Promise<void> => {
               gasLimit: 100_000,
             },
           );
-          console.log("Feed transaction successful:", feed_tx.transactionHash, "\n");
+          console.log("Fed pet ", feedAmount, "times", "\n");
         } catch (error) {
           console.error("Error feeding the pet:", error, "\n");
         }
@@ -137,7 +154,7 @@ export const main = async (): Promise<void> => {
               gasLimit: 100_000,
             },
           );
-          console.log("Play transaction successful:", play_tx.transactionHash, "\n");
+          console.log("Played with the pet ", playAmount, " times", "\n");
         } catch (error) {
           console.error("Error playing with the pet:", error, "\n");
         }
@@ -172,7 +189,7 @@ export const main = async (): Promise<void> => {
               gasLimit: 100_000,
             },
           );
-          console.log("Rest transaction successful:", rest_tx.transactionHash, "\n");
+          console.log("Rested the pet ", restAmount, " times", "\n");
         } catch (error) {
           console.error("Error resting the pet:", error, "\n");
         }
@@ -187,13 +204,17 @@ export const main = async (): Promise<void> => {
         };
 
         try {
+          // Query the contract for the pet status
           const get_status_result = await secretjs.query.compute.queryContract({
             contract_address,
             code_hash,
             query: get_status_query,
-          });
-
-          console.log("Pet status:", get_status_result, "\n");
+          }) as GetStatus;
+          let result = get_status_result.get_status;
+          console.log("Name:", result.name);
+          console.log("Hunger:", result.hunger_level);
+          console.log("Happiness:", result.happiness_level);
+          console.log("Energy:", result.energy_level, "\n");
         } catch (error) {
           console.error("Error getting pet status:", error, "\n");
         }
@@ -212,11 +233,15 @@ export const main = async (): Promise<void> => {
             contract_address,
             code_hash,
             query: is_hungry_query,
-          });
-
-          console.log("Is the pet hungry?", is_hungry_result, "\n");
+          }) as isHungryResult;
+          if (is_hungry_result.is_hungry.is_hungry) {
+            console.log("The pet is hungry. Please feed it!\n");
+          }
+          else {
+            console.log("The pet is not hungry. No need to feed it.\n");
+          }
         } catch (error) {
-          console.error("Error checking if pet is hungry:", error, "\n");
+          //console.error("Error checking if pet is hungry:", error, "\n");
         }
         break;
 
@@ -255,7 +280,7 @@ export const main = async (): Promise<void> => {
         break;
 
       default:
-        console.log("Invalid choice. Please enter a number between 1 and 6.\n");
+        console.log("Invalid choice. Please enter a number between 1 and 7.\n");
         break;
     }
   }
