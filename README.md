@@ -114,7 +114,7 @@ All scripts are located inside the `uploader/` directory.
 - **Upload Script**: `upload.ts`
 - **Instantiate Script**: `instantiate.ts`
 - **Execute Script**: `execute.ts`
-- **Test Script**: `test.ts`
+- **Test Script**: `testpet.ts`
 
 ---
 
