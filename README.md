@@ -66,15 +66,18 @@ The repository is organized as follows:
    ```bash
    npm install
    ```
-
-3. **Create a `.env` File**
+   **Note** You may need to run
+   ```bash
+   nvm install 20
+   ```
+4. **Create a `.env` File**
 
    Create a `.env` file in the `uploader` directory to store your environment variables.
 
 
    **Important:** Do not commit this file to version control.
 
-4. **Set Up Environment Variables**
+5. **Set Up Environment Variables**
 
    Open the `.env` file and add the following variables:
 
