@@ -204,14 +204,13 @@ export const main = async (): Promise<void> => {
         };
 
         try {
-
+          // Query the contract for the pet status
           const get_status_result = await secretjs.query.compute.queryContract({
             contract_address,
             code_hash,
             query: get_status_query,
           }) as GetStatus;
           let result = get_status_result.get_status;
-          console.log(get_status_result);
           console.log("Name:", result.name);
           console.log("Hunger:", result.hunger_level);
           console.log("Happiness:", result.happiness_level);

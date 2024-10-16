@@ -9,6 +9,7 @@ pub struct InstantiateMsg {
     pub owner: Option<Addr>, 
 }
 
+// ExecuteMsg is used to perform actions on the pet.
 #[derive(Serialize, Deserialize, Clone, Debug, Eq, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum ExecuteMsg {
